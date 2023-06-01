@@ -1,11 +1,11 @@
 '''
 ---Calentador de Agua---
 Forma: Cilindrica
-Material: Polipropileno
+Material: Polietileno
 Capacidad = 1L
 Espesor = 1cm
-Altura = 20 cm
-Radio = 4cm
+Altura = 25cm
+Radio = 5cm
 '''
 
 #!/usr/bin/python3
@@ -13,33 +13,30 @@ import random
 import matplotlib.pyplot as graph
 graph.style.use('ggplot')
 
-def grafico(listado_temp_s, listado_temp_c):
+def grafico(listado_temp_s, listado_temp_c, lista_contador):
     figure = graph.figure()
     figure.set_size_inches(30,30)
     graph.subplot(1,2,1)
-    graph.xlabel('Ticks')
+    graph.xlabel('Ticks [s]')
+    graph.ylabel("Grados [°C]")
     #for Ti in range (len(listado_temp_s)):
     #    graph.plot(listado_temp_s[Ti], label='Ti:'+str(Ti))
-    graph.plot(listado_temp_s, label='Curva sin pérdida')
-    graph.title("Temperaturas")
+    graph.plot(lista_contador, listado_temp_s, label='Curva sin pérdida')
+    graph.title("Curva sin pérdida")
     graph.subplot(1,2,2)
-    graph.xlabel('Ticks')
+    graph.xlabel('Ticks [s]')
+    graph.ylabel("Grados [°C]")
     #for Ti in range (len(listado_temp_c)):
     #    graph.plot(listado_temp_c[Ti], label='Ti:'+str(Ti))
-    graph.plot(listado_temp_c, label='Curva con pérdida')
-    graph.title("Temperaturas")
+    graph.plot(lista_contador, listado_temp_c, label='Curva con pérdida')
+    graph.title("Curva con pérdida")
     graph.legend()
     graph.show()
-
-def calculoAlternoT(P,m,Qesp,Ti):
-    Tf = 0
-    Tf = (P/(m*Qesp))+Ti
-    return Tf
 
 def calorPerdido(k,area_ext,area_int,espesor,deltaT):
     Qint = (k*area_int*deltaT)/espesor
     Qext = (k*area_ext*deltaT)/espesor
-    QTotal = Qint + Qext
+    QTotal = (Qint + Qext)
     return QTotal
 
 def main():
@@ -49,17 +46,19 @@ def main():
     Qs = 1 #calor a entregar 1 [KJ/s]
     m = 1 #masa
     Qesp = 4.186
-    Qesp_alt = 1 #[J/s]
+    Qesp_alt = 4186 #[J/s]
     Ti = 25 #temperatura inicial e interior [C]
     Tf = 0 #temperatura final
     vol = 1
     lista_temp_s = []
     lista_temp_c = []
+    lista_contador = []
 
-    k = 0.15 #resistividad térmica [W/m·K]
-    area_int = 0.0377 #[m2]
-    area_ext = 0.0503 #[m2]
-    temp_ext = 25 #temperatura exterior [C]
+    k = 0.4 #resistividad térmica [W/m·K]
+    area_int = 0.1257#0.35#0.0316 #0.05027#0.1005#0.0377 #[m2]
+    area_ext = 0.1571#0.40#0.0314 #0.10053#0.2513#0.0503 #[m2]
+    Tint = 25
+    Text = 25 #temperatura exterior [C]
     espesor = 0.01 #[m]
     contador = 0
 
@@ -94,22 +93,24 @@ def main():
         #Tf = (P/(m*Qesp))+Ti
         lista_temp_s.append(Ti)
         print('Para '+str(contador)+'s - Temp. Final s/pérdida:'+str(Ti)+'°C')
-        T_alt = calculoAlternoT(P,m,Qesp_alt,Ti)
+        #T_alt = calculoAlternoT(P,m,Qesp_alt,Ti)
         Ti = Tf
         contador += 1
-        deltaT = temp_ext - T_alt #Invertido
+        deltaT = Tint - Text
         QTotal = calorPerdido(k,area_ext,area_int,espesor,deltaT)
         print("Calor perdido: ", QTotal)
-        P = QTotal/deltaT
-        Tfp = (QTotal/(m*Qesp))+T_alt
-        lista_temp_c.append(Tfp)
-        print('Para '+str(contador)+'s - Temp. Final c/pérdida: '+str(Tfp)+'°C')
-        if (Ti >= 100):
+        Tint = Tint + (P - QTotal)/Qesp_alt
+        #P = QTotal/deltaT
+        #Tfp = (QTotal/(m*Qesp))+T_alt
+        lista_temp_c.append(Tint)
+        print('Para '+str(contador)+'s - Temp. Final c/pérdida: '+str(Tint)+'°C')
+        lista_contador.append(contador)
+        if (contador >= 400):
             break;
     print('\n')
     #print(lista_temp)
     print('\n')
-    grafico(lista_temp_s, lista_temp_c)
+    grafico(lista_temp_s, lista_temp_c, lista_contador)
 
 if __name__ == '__main__':
     main()
